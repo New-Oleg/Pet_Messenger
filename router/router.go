@@ -12,6 +12,9 @@ import (
 	"github.com/yourname/pet_messenger/pkg/db"
 	"github.com/yourname/pet_messenger/repository"
 	"github.com/yourname/pet_messenger/service"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func SetupRouter(cfg *config.Config) *gin.Engine {
@@ -27,24 +30,30 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		&model.Comment{},
 		&model.Like{},
 		&model.RefreshToken{},
+		&model.Conversation{},
+		&model.DirectMessage{},
 	)
 
-	// Создаем репозитории
+	// --- Репозитории ---
 	userRepo := repository.NewUserRepository(gormDB)
 	postRepo := repository.NewPostRepository(gormDB)
 	commentRepo := repository.NewCommentRepository(gormDB)
 	refreshRepo := repository.NewRefreshTokenRepository(gormDB)
+	conversationRepo := repository.NewConversationRepository(gormDB)
+	messageRepo := repository.NewDirectMessageRepository(gormDB)
 
-	// Создаем сервисы
+	// --- Сервисы ---
 	userService := service.NewUserService(userRepo, cfg.JWTSecret, 15*time.Minute)
 	postService := service.NewPostService(postRepo)
 	commentService := service.NewCommentService(commentRepo)
 	authService := service.NewAuthService(cfg.JWTSecret, 15*time.Minute, 7*24*time.Hour, refreshRepo)
+	conversationService := service.NewConversationService(conversationRepo, messageRepo)
 
-	// Создаем контроллеры
+	// --- Контроллеры ---
 	authCtrl := controller.NewAuthController(userService, authService)
 	postCtrl := controller.NewPostController(postService)
 	commentCtrl := controller.NewCommentController(commentService)
+	conversationCtrl := controller.NewConversationController(conversationService)
 
 	// --- Публичные маршруты ---
 	r.POST("/register", func(ctx *gin.Context) {
@@ -71,7 +80,7 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	r.POST("/login", authCtrl.Login)
 	r.POST("/refresh", authCtrl.Refresh)
 
-	// --- Защищенные маршруты через JWT ---
+	// --- Защищённые маршруты ---
 	auth := r.Group("/")
 	auth.Use(middleware.JWTMiddleware(cfg.JWTSecret))
 	auth.POST("/logout", authCtrl.Logout)
@@ -93,7 +102,7 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		})
 	})
 
-	// --- Роуты для постов ---
+	// --- Посты ---
 	auth.POST("/posts", postCtrl.CreatePost)
 	auth.GET("/posts/:id", postCtrl.GetPostByID)
 	auth.GET("/users/:id/posts", postCtrl.GetPostsByAuthor)
@@ -102,10 +111,18 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	auth.POST("/posts/:id/like", postCtrl.LikePost)
 	auth.POST("/posts/:id/unlike", postCtrl.UnlikePost)
 
-	// --- Роуты для комментариев ---
+	// --- Комментарии ---
 	auth.POST("/posts/:id/comments", commentCtrl.CreateComment)
 	auth.GET("/posts/:id/comments", commentCtrl.GetCommentsByPost)
 	auth.DELETE("/comments/:id", commentCtrl.DeleteComment)
+
+	// ---
+	auth.POST("/conversations", conversationCtrl.StartConversation)
+	auth.GET("/conversations", conversationCtrl.GetConversations)
+	auth.GET("/conversations/:id/messages", conversationCtrl.GetMessages)
+	auth.POST("/conversations/:id/messages", conversationCtrl.SendMessage)
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return r
 }

@@ -15,8 +15,9 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
-	// связи (один-ко-многим)
-	Posts    []Post    `gorm:"foreignKey:AuthorID" json:"-"`
-	Likes    []Like    `gorm:"foreignKey:UserID" json:"-"`
-	Messages []Comment `gorm:"foreignKey:SenderID" json:"-"`
+	Posts         []Post          `gorm:"foreignKey:AuthorID" json:"-"`
+	Likes         []Like          `gorm:"foreignKey:UserID" json:"-"`
+	Comments      []Comment       `gorm:"foreignKey:UserID" json:"-"`
+	MessagesSent  []DirectMessage `gorm:"foreignKey:SenderID" json:"-"`
+	Conversations []Conversation  `gorm:"many2many:user_conversations;" json:"-"`
 }

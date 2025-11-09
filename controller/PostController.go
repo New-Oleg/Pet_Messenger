@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/yourname/pet_messenger/dto"
+	"github.com/yourname/pet_messenger/model"
 	"github.com/yourname/pet_messenger/service"
 )
 
@@ -12,7 +13,6 @@ type PostController struct {
 	postService *service.PostService
 }
 
-// Конструктор
 func NewPostController(postService *service.PostService) *PostController {
 	return &PostController{postService: postService}
 }
@@ -32,7 +32,7 @@ func (c *PostController) CreatePost(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, post)
+	ctx.JSON(http.StatusCreated, toPostResponse(post))
 }
 
 // GET /posts/:id
@@ -44,7 +44,7 @@ func (c *PostController) GetPostByID(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, post)
+	ctx.JSON(http.StatusOK, toPostResponse(post))
 }
 
 // GET /users/:id/posts
@@ -56,7 +56,12 @@ func (c *PostController) GetPostsByAuthor(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, posts)
+	responses := make([]dto.PostResponse, len(posts))
+	for i, p := range posts {
+		responses[i] = toPostResponse(&p)
+	}
+
+	ctx.JSON(http.StatusOK, responses)
 }
 
 // PUT /posts/:id
@@ -74,7 +79,6 @@ func (c *PostController) UpdatePost(ctx *gin.Context) {
 		return
 	}
 
-	// Проверяем, что автор совпадает с текущим пользователем
 	if post.AuthorID != ctx.GetString("userID") {
 		ctx.JSON(http.StatusForbidden, gin.H{"error": "you can update only your posts"})
 		return
@@ -86,7 +90,7 @@ func (c *PostController) UpdatePost(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, post)
+	ctx.JSON(http.StatusOK, toPostResponse(post))
 }
 
 // DELETE /posts/:id
@@ -135,4 +139,16 @@ func (c *PostController) UnlikePost(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "like removed"})
+}
+
+// --- Вспомогательная функция ---
+func toPostResponse(post *model.Post) dto.PostResponse {
+	return dto.PostResponse{
+		ID:         post.ID,
+		AuthorID:   post.AuthorID,
+		Text:       post.Text,
+		CreatedAt:  post.CreatedAt,
+		UpdatedAt:  post.UpdatedAt,
+		LikesCount: post.LikesCount,
+	}
 }

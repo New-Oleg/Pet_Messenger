@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/yourname/pet_messenger/dto"
+	"github.com/yourname/pet_messenger/model"
 	"github.com/yourname/pet_messenger/service"
 )
 
@@ -16,6 +17,7 @@ func NewCommentController(commentService *service.CommentService) *CommentContro
 	return &CommentController{commentService: commentService}
 }
 
+// POST /posts/:id/comments
 func (c *CommentController) CreateComment(ctx *gin.Context) {
 	postID := ctx.Param("id")
 	userID := ctx.GetString("userID")
@@ -32,7 +34,7 @@ func (c *CommentController) CreateComment(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, comment)
+	ctx.JSON(http.StatusCreated, toCommentResponse(comment))
 }
 
 // GET /posts/:id/comments
@@ -45,7 +47,12 @@ func (c *CommentController) GetCommentsByPost(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, comments)
+	responses := make([]dto.CommentResponse, len(comments))
+	for i, cm := range comments {
+		responses[i] = toCommentResponse(&cm)
+	}
+
+	ctx.JSON(http.StatusOK, responses)
 }
 
 // DELETE /comments/:id
@@ -58,4 +65,15 @@ func (c *CommentController) DeleteComment(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "comment deleted"})
+}
+
+// --- Вспомогательная функция ---
+func toCommentResponse(comment *model.Comment) dto.CommentResponse {
+	return dto.CommentResponse{
+		ID:        comment.ID,
+		UserID:    comment.UserID,
+		PostID:    comment.PostID,
+		Text:      comment.Text,
+		CreatedAt: comment.CreatedAt,
+	}
 }
