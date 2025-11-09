@@ -18,5 +18,5 @@ type User struct {
 	// связи (один-ко-многим)
 	Posts    []Post    `gorm:"foreignKey:AuthorID" json:"-"`
 	Likes    []Like    `gorm:"foreignKey:UserID" json:"-"`
-	Messages []Message `gorm:"foreignKey:SenderID" json:"-"`
+	Messages []Comment `gorm:"foreignKey:SenderID" json:"-"`
 }

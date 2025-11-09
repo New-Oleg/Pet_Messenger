@@ -8,40 +8,38 @@ import (
 	"github.com/yourname/pet_messenger/service"
 )
 
-type MessageController struct {
-	messageService *service.MessageService
+type CommentController struct {
+	commentService *service.CommentService
 }
 
-// Конструктор
-func NewMessageController(messageService *service.MessageService) *MessageController {
-	return &MessageController{messageService: messageService}
+func NewCommentController(commentService *service.CommentService) *CommentController {
+	return &CommentController{commentService: commentService}
 }
 
-// POST /posts/:id/comments
-func (c *MessageController) CreateComment(ctx *gin.Context) {
+func (c *CommentController) CreateComment(ctx *gin.Context) {
 	postID := ctx.Param("id")
 	userID := ctx.GetString("userID")
 
-	var req dto.MessageCreateDTO
+	var req dto.CommentCreateDTO
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	msg, err := c.messageService.CreateComment(ctx, userID, postID)
+	comment, err := c.commentService.CreateComment(ctx, userID, postID, req.Text)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, msg)
+	ctx.JSON(http.StatusCreated, comment)
 }
 
 // GET /posts/:id/comments
-func (c *MessageController) GetCommentsByPost(ctx *gin.Context) {
+func (c *CommentController) GetCommentsByPost(ctx *gin.Context) {
 	postID := ctx.Param("id")
 
-	comments, err := c.messageService.GetCommentsByPost(ctx, postID)
+	comments, err := c.commentService.GetCommentsByPost(ctx, postID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -51,10 +49,10 @@ func (c *MessageController) GetCommentsByPost(ctx *gin.Context) {
 }
 
 // DELETE /comments/:id
-func (c *MessageController) DeleteComment(ctx *gin.Context) {
+func (c *CommentController) DeleteComment(ctx *gin.Context) {
 	commentID := ctx.Param("id")
 
-	if err := c.messageService.DeleteComment(ctx, commentID); err != nil {
+	if err := c.commentService.DeleteComment(ctx, commentID); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

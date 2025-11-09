@@ -24,7 +24,7 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	gormDB.AutoMigrate(
 		&model.User{},
 		&model.Post{},
-		&model.Message{},
+		&model.Comment{},
 		&model.Like{},
 		&model.RefreshToken{},
 	)
@@ -32,16 +32,19 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	// Создаем репозитории
 	userRepo := repository.NewUserRepository(gormDB)
 	postRepo := repository.NewPostRepository(gormDB)
+	commentRepo := repository.NewCommentRepository(gormDB)
 	refreshRepo := repository.NewRefreshTokenRepository(gormDB)
 
 	// Создаем сервисы
 	userService := service.NewUserService(userRepo, cfg.JWTSecret, 15*time.Minute)
 	postService := service.NewPostService(postRepo)
+	commentService := service.NewCommentService(commentRepo)
 	authService := service.NewAuthService(cfg.JWTSecret, 15*time.Minute, 7*24*time.Hour, refreshRepo)
 
 	// Создаем контроллеры
 	authCtrl := controller.NewAuthController(userService, authService)
 	postCtrl := controller.NewPostController(postService)
+	commentCtrl := controller.NewCommentController(commentService)
 
 	// --- Публичные маршруты ---
 	r.POST("/register", func(ctx *gin.Context) {
@@ -98,6 +101,11 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	auth.DELETE("/posts/:id", postCtrl.DeletePost)
 	auth.POST("/posts/:id/like", postCtrl.LikePost)
 	auth.POST("/posts/:id/unlike", postCtrl.UnlikePost)
+
+	// --- Роуты для комментариев ---
+	auth.POST("/posts/:id/comments", commentCtrl.CreateComment)
+	auth.GET("/posts/:id/comments", commentCtrl.GetCommentsByPost)
+	auth.DELETE("/comments/:id", commentCtrl.DeleteComment)
 
 	return r
 }
