@@ -1,0 +1,138 @@
+package controller
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/yourname/pet_messenger/dto"
+	"github.com/yourname/pet_messenger/service"
+)
+
+type PostController struct {
+	postService *service.PostService
+}
+
+// Конструктор
+func NewPostController(postService *service.PostService) *PostController {
+	return &PostController{postService: postService}
+}
+
+// POST /posts
+func (c *PostController) CreatePost(ctx *gin.Context) {
+	var req dto.PostCreateDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	authorID := ctx.GetString("userID") // JWT middleware
+	post, err := c.postService.CreatePost(ctx, authorID, req.Text)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, post)
+}
+
+// GET /posts/:id
+func (c *PostController) GetPostByID(ctx *gin.Context) {
+	postID := ctx.Param("id")
+	post, err := c.postService.GetPost(ctx, postID)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, post)
+}
+
+// GET /users/:id/posts
+func (c *PostController) GetPostsByAuthor(ctx *gin.Context) {
+	authorID := ctx.Param("id")
+	posts, err := c.postService.GetPostsByAuthor(ctx, authorID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, posts)
+}
+
+// PUT /posts/:id
+func (c *PostController) UpdatePost(ctx *gin.Context) {
+	postID := ctx.Param("id")
+	var req dto.PostCreateDTO
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	post, err := c.postService.GetPost(ctx, postID)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
+		return
+	}
+
+	// Проверяем, что автор совпадает с текущим пользователем
+	if post.AuthorID != ctx.GetString("userID") {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "you can update only your posts"})
+		return
+	}
+
+	post.Text = req.Text
+	if err := c.postService.UpdatePost(ctx, post); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, post)
+}
+
+// DELETE /posts/:id
+func (c *PostController) DeletePost(ctx *gin.Context) {
+	postID := ctx.Param("id")
+	post, err := c.postService.GetPost(ctx, postID)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
+		return
+	}
+
+	if post.AuthorID != ctx.GetString("userID") {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "you can delete only your posts"})
+		return
+	}
+
+	if err := c.postService.DeletePost(ctx, postID); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "post deleted"})
+}
+
+// POST /posts/:id/like
+func (c *PostController) LikePost(ctx *gin.Context) {
+	postID := ctx.Param("id")
+	userID := ctx.GetString("userID")
+
+	if err := c.postService.LikePost(ctx, userID, postID); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "post liked"})
+}
+
+// POST /posts/:id/unlike
+func (c *PostController) UnlikePost(ctx *gin.Context) {
+	postID := ctx.Param("id")
+	userID := ctx.GetString("userID")
+
+	if err := c.postService.UnlikePost(ctx, userID, postID); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "like removed"})
+}
