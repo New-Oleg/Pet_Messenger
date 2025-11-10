@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yourname/pet_messenger/config"
 	"github.com/yourname/pet_messenger/controller"
-	"github.com/yourname/pet_messenger/dto"
 	"github.com/yourname/pet_messenger/middleware"
 	"github.com/yourname/pet_messenger/model"
 	"github.com/yourname/pet_messenger/pkg/db"
@@ -54,31 +53,13 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	postCtrl := controller.NewPostController(postService)
 	commentCtrl := controller.NewCommentController(commentService)
 	conversationCtrl := controller.NewConversationController(conversationService)
+	userCtrl := controller.NewUserController(userService)
 
 	// --- Публичные маршруты ---
-	r.POST("/register", func(ctx *gin.Context) {
-		var req dto.UserRegisterDTO
-		if err := ctx.ShouldBindJSON(&req); err != nil {
-			ctx.JSON(400, gin.H{"error": err.Error()})
-			return
-		}
 
-		user, err := userService.Register(ctx, req.Username, req.Email, req.Password)
-		if err != nil {
-			ctx.JSON(400, gin.H{"error": err.Error()})
-			return
-		}
-
-		ctx.JSON(200, gin.H{
-			"id":       user.ID,
-			"username": user.Username,
-			"email":    user.Email,
-			"bio":      user.Bio,
-			"avatar":   user.AvatarURL,
-		})
-	})
 	r.POST("/login", authCtrl.Login)
 	r.POST("/refresh", authCtrl.Refresh)
+	r.POST("/register", userCtrl.RegisterUser)
 
 	// --- Защищённые маршруты ---
 	auth := r.Group("/")

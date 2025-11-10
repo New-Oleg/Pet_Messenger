@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/yourname/pet_messenger/model"
 	"github.com/yourname/pet_messenger/repository"
 )
@@ -13,18 +14,17 @@ type PostService struct {
 	repo repository.IPostRepository
 }
 
-// Конструктор
 func NewPostService(repo repository.IPostRepository) *PostService {
 	return &PostService{repo: repo}
 }
 
-// Создание нового поста
 func (s *PostService) CreatePost(ctx context.Context, authorID, text string) (*model.Post, error) {
 	if text == "" {
 		return nil, errors.New("text cannot be empty")
 	}
 
 	post := &model.Post{
+		ID:         uuid.New().String(),
 		AuthorID:   authorID,
 		Text:       text,
 		LikesCount: 0,

@@ -18,6 +18,15 @@ func NewCommentController(commentService *service.CommentService) *CommentContro
 }
 
 // POST /posts/:id/comments
+// @Summary Create comment
+// @Description Add a comment to a post
+// @Tags comments
+// @Accept json
+// @Produce json
+// @Param id path string true "Post ID"
+// @Param comment body dto.CommentCreateDTO true "Comment data"
+// @Success 201 {object} dto.CommentResponse
+// @Router /posts/{id}/comments [post]
 func (c *CommentController) CreateComment(ctx *gin.Context) {
 	postID := ctx.Param("id")
 	userID := ctx.GetString("userID")
@@ -38,6 +47,13 @@ func (c *CommentController) CreateComment(ctx *gin.Context) {
 }
 
 // GET /posts/:id/comments
+// @Summary Get comments
+// @Description Get all comments for a post
+// @Tags comments
+// @Produce json
+// @Param id path string true "Post ID"
+// @Success 200 {array} dto.CommentResponse
+// @Router /posts/{id}/comments [get]
 func (c *CommentController) GetCommentsByPost(ctx *gin.Context) {
 	postID := ctx.Param("id")
 
@@ -56,6 +72,13 @@ func (c *CommentController) GetCommentsByPost(ctx *gin.Context) {
 }
 
 // DELETE /comments/:id
+// @Summary Delete comment
+// @Description Delete a comment by ID
+// @Tags comments
+// @Produce json
+// @Param id path string true "Comment ID"
+// @Success 200 {object} map[string]string
+// @Router /comments/{id} [delete]
 func (c *CommentController) DeleteComment(ctx *gin.Context) {
 	commentID := ctx.Param("id")
 

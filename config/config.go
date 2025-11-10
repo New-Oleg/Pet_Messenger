@@ -27,12 +27,11 @@ func LoadConfig() *Config {
 
 	return &Config{
 		Port:          getEnv("PORT", "8080"),
-		DBHost:        getEnv("DB_HOST", "localhost"),
-		DBPort:        getEnv("DB_PORT", "5432"),
-		DBUser:        getEnv("DB_USER", "postgres"),
-		DBPassword:    getEnv("DB_PASSWORD", "postgres"),
+		DBHost:        getEnv("DB_HOST", "127.0.0.1"),
+		DBPort:        getEnv("DB_PORT", "8889"),
+		DBUser:        getEnv("DB_USER", "root"),
+		DBPassword:    getEnv("DB_PASSWORD", "root"),
 		DBName:        getEnv("DB_NAME", "pet_messenger"),
-		DBSSLMode:     getEnv("DB_SSLMODE", "disable"),
 		JWTSecret:     getEnv("JWT_SECRET", ""),
 		RefreshSecret: getEnv("REFRESH_SECRET", ""),
 	}

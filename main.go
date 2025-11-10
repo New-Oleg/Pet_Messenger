@@ -18,6 +18,7 @@ import (
 	"log"
 
 	"github.com/yourname/pet_messenger/config"
+	_ "github.com/yourname/pet_messenger/docs"
 	"github.com/yourname/pet_messenger/router"
 )
 
@@ -33,3 +34,5 @@ func main() {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
+
+// http://localhost:8080/swagger/index.html

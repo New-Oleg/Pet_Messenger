@@ -21,6 +21,16 @@ func NewAuthController(userService *service.UserService, authService *service.Au
 }
 
 // POST /login
+// @Summary Login user
+// @Description Authenticate user with email and password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param login body dto.UserLoginDTO true "Login data"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /login [post]
 func (c *AuthController) Login(ctx *gin.Context) {
 	var req dto.UserLoginDTO
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -56,7 +66,17 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	})
 }
 
-// POST /refresh
+// POST /login
+// @Summary Login user
+// @Description Authenticate user with email and password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param login body dto.UserLoginDTO true "Login data"
+// @Success 200 {object} dto.UserAuthResponse
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /login [post]
 func (c *AuthController) Refresh(ctx *gin.Context) {
 	var req dto.TokenRefreshDTO
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -77,6 +97,13 @@ func (c *AuthController) Refresh(ctx *gin.Context) {
 }
 
 // POST /logout
+// @Summary Logout user
+// @Description Revoke all refresh tokens
+// @Tags auth
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /logout [post]
 func (c *AuthController) Logout(ctx *gin.Context) {
 	userID, exists := ctx.Get("userID") // userID получаем из JWT middleware
 	if !exists {

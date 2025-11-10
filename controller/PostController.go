@@ -18,6 +18,15 @@ func NewPostController(postService *service.PostService) *PostController {
 }
 
 // POST /posts
+// @Summary Create a post
+// @Description Create a new post for the authenticated user
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Param post body dto.PostCreateDTO true "Post data"
+// @Success 201 {object} dto.PostResponse
+// @Failure 400 {object} map[string]string
+// @Router /posts [post]
 func (c *PostController) CreatePost(ctx *gin.Context) {
 	var req dto.PostCreateDTO
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -36,6 +45,14 @@ func (c *PostController) CreatePost(ctx *gin.Context) {
 }
 
 // GET /posts/:id
+// @Summary Get post by ID
+// @Description Get post details
+// @Tags posts
+// @Produce json
+// @Param id path string true "Post ID"
+// @Success 200 {object} dto.PostResponse
+// @Failure 404 {object} map[string]string
+// @Router /posts/{id} [get]
 func (c *PostController) GetPostByID(ctx *gin.Context) {
 	postID := ctx.Param("id")
 	post, err := c.postService.GetPost(ctx, postID)
@@ -48,6 +65,13 @@ func (c *PostController) GetPostByID(ctx *gin.Context) {
 }
 
 // GET /users/:id/posts
+// @Summary Get posts by user
+// @Description Get all posts created by a specific user
+// @Tags posts
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {array} dto.PostResponse
+// @Router /users/{id}/posts [get]
 func (c *PostController) GetPostsByAuthor(ctx *gin.Context) {
 	authorID := ctx.Param("id")
 	posts, err := c.postService.GetPostsByAuthor(ctx, authorID)
@@ -65,6 +89,18 @@ func (c *PostController) GetPostsByAuthor(ctx *gin.Context) {
 }
 
 // PUT /posts/:id
+// @Summary Update post
+// @Description Update a post by the authenticated user
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Param id path string true "Post ID"
+// @Param post body dto.PostCreateDTO true "Post data"
+// @Success 200 {object} dto.PostResponse
+// @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /posts/{id} [put]
 func (c *PostController) UpdatePost(ctx *gin.Context) {
 	postID := ctx.Param("id")
 	var req dto.PostCreateDTO
@@ -94,6 +130,15 @@ func (c *PostController) UpdatePost(ctx *gin.Context) {
 }
 
 // DELETE /posts/:id
+// @Summary Delete post
+// @Description Delete a post by the authenticated user
+// @Tags posts
+// @Produce json
+// @Param id path string true "Post ID"
+// @Success 200 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /posts/{id} [delete]
 func (c *PostController) DeletePost(ctx *gin.Context) {
 	postID := ctx.Param("id")
 	post, err := c.postService.GetPost(ctx, postID)
@@ -116,6 +161,13 @@ func (c *PostController) DeletePost(ctx *gin.Context) {
 }
 
 // POST /posts/:id/like
+// @Summary Like post
+// @Description Like a post by the authenticated user
+// @Tags posts
+// @Produce json
+// @Param id path string true "Post ID"
+// @Success 200 {object} map[string]string
+// @Router /posts/{id}/like [post]
 func (c *PostController) LikePost(ctx *gin.Context) {
 	postID := ctx.Param("id")
 	userID := ctx.GetString("userID")
@@ -129,6 +181,13 @@ func (c *PostController) LikePost(ctx *gin.Context) {
 }
 
 // POST /posts/:id/unlike
+// @Summary Unlike post
+// @Description Remove like from a post by the authenticated user
+// @Tags posts
+// @Produce json
+// @Param id path string true "Post ID"
+// @Success 200 {object} map[string]string
+// @Router /posts/{id}/unlike [post]
 func (c *PostController) UnlikePost(ctx *gin.Context) {
 	postID := ctx.Param("id")
 	userID := ctx.GetString("userID")
@@ -141,7 +200,7 @@ func (c *PostController) UnlikePost(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "like removed"})
 }
 
-// --- Вспомогательная функция ---
+// --- Вспомогательная функция, потому что я поленился сделать маппер))))
 func toPostResponse(post *model.Post) dto.PostResponse {
 	return dto.PostResponse{
 		ID:         post.ID,

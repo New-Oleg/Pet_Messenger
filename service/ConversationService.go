@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/yourname/pet_messenger/model"
 	"github.com/yourname/pet_messenger/repository"
 )
@@ -27,6 +28,7 @@ func (s *ConversationService) StartConversation(ctx context.Context, userAID, us
 	}
 
 	newConv := &model.Conversation{
+		ID:        uuid.New().String(),
 		UserAID:   userAID,
 		UserBID:   userBID,
 		CreatedAt: time.Now(),
@@ -48,6 +50,7 @@ func (s *ConversationService) GetMessages(ctx context.Context, conversationID st
 }
 
 func (s *ConversationService) SendMessage(ctx context.Context, msg *model.DirectMessage) error {
+	msg.ID = uuid.New().String()
 	msg.CreatedAt = time.Now()
 	return s.messageRepo.Create(ctx, msg)
 }

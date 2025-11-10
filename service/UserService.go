@@ -5,9 +5,9 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/yourname/pet_messenger/model"
 	"github.com/yourname/pet_messenger/repository"
-
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -17,7 +17,6 @@ type UserService struct {
 	tokenExpiry time.Duration
 }
 
-// Конструктор
 func NewUserService(repo repository.IUserRepository, jwtSecret string, expiry time.Duration) *UserService {
 	if jwtSecret == "" {
 		panic("jwtSecret cannot be empty")
@@ -29,7 +28,6 @@ func NewUserService(repo repository.IUserRepository, jwtSecret string, expiry ti
 	}
 }
 
-// Регистрация пользователя
 func (s *UserService) Register(ctx context.Context, username, email, password string) (*model.User, error) {
 	existing, _ := s.repo.GetByEmail(ctx, email)
 	if existing != nil {
@@ -42,6 +40,7 @@ func (s *UserService) Register(ctx context.Context, username, email, password st
 	}
 
 	user := &model.User{
+		ID:        uuid.New().String(),
 		Username:  username,
 		Email:     email,
 		Password:  string(hashedPassword),

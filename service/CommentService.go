@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/yourname/pet_messenger/model"
 	"github.com/yourname/pet_messenger/repository"
 )
@@ -23,6 +24,7 @@ func (s *CommentService) CreateComment(ctx context.Context, userID, postID, text
 	}
 
 	comment := &model.Comment{
+		ID:        uuid.New().String(),
 		UserID:    userID,
 		PostID:    postID,
 		Text:      text,

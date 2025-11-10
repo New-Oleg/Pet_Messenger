@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 	"github.com/yourname/pet_messenger/model"
 	"github.com/yourname/pet_messenger/repository"
 )
@@ -26,9 +27,7 @@ func NewAuthService(jwtSecret string, accessTTL, refreshTTL time.Duration, refre
 	}
 }
 
-// Генерация токенов с сохранением refresh
 func (s *AuthService) GenerateTokens(ctx context.Context, userID string) (accessToken string, refreshToken string, err error) {
-	// Access token
 	accessClaims := jwt.MapClaims{
 		"user_id": userID,
 		"exp":     time.Now().Add(s.accessTTL).Unix(),
@@ -39,7 +38,6 @@ func (s *AuthService) GenerateTokens(ctx context.Context, userID string) (access
 		return "", "", err
 	}
 
-	// Refresh token
 	refreshClaims := jwt.MapClaims{
 		"user_id": userID,
 		"exp":     time.Now().Add(s.refreshTTL).Unix(),
@@ -50,8 +48,8 @@ func (s *AuthService) GenerateTokens(ctx context.Context, userID string) (access
 		return "", "", err
 	}
 
-	// Сохраняем refresh в базу
 	tokenModel := &model.RefreshToken{
+		ID:        uuid.New().String(),
 		UserID:    userID,
 		Token:     refreshToken,
 		ExpiresAt: time.Now().Add(s.refreshTTL),
